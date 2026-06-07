@@ -1,29 +1,48 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { SiteHeader } from "@/components/site/SiteHeader";
+import { Hero } from "@/components/site/Hero";
+import {
+  SocialProof, HowItWorks, Industries, Features, AIEmployee,
+  Benefits, Testimonials, Pricing, Security, FAQ, FinalCTA, SiteFooter,
+} from "@/components/site/Sections";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Your App" },
-      { name: "description", content: "Replace this with a one-sentence description of your app." },
-      { property: "og:title", content: "Your App" },
-      { property: "og:description", content: "Replace this with a one-sentence description of your app." },
+      { title: "BizPilot AI — Your First AI Employee" },
+      { name: "description", content: "Automate billing, inventory, payments and reports for your small business. BizPilot AI works like a full-time employee — for bakeries, salons, restaurants, clinics and more." },
+      { property: "og:title", content: "BizPilot AI — Your First AI Employee" },
+      { property: "og:description", content: "Automate daily operations for your small business with AI." },
+      { property: "og:type", content: "website" },
+    ],
+    links: [
+      { rel: "canonical", href: "/" },
+      { rel: "preconnect", href: "https://rsms.me" },
+      { rel: "stylesheet", href: "https://rsms.me/inter/inter.css" },
     ],
   }),
-  component: Index,
+  component: LandingPage,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+function LandingPage() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="min-h-screen bg-background text-foreground">
+      <SiteHeader />
+      <main>
+        <Hero />
+        <SocialProof />
+        <HowItWorks />
+        <Industries />
+        <Features />
+        <AIEmployee />
+        <Benefits />
+        <Testimonials />
+        <Pricing />
+        <Security />
+        <FAQ />
+        <FinalCTA />
+      </main>
+      <SiteFooter />
     </div>
   );
 }
