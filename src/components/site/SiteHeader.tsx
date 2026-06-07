@@ -51,9 +51,11 @@ export function SiteHeader() {
         </nav>
 
         <div className="hidden md:flex items-center gap-2">
-          <Button variant="ghost" size="sm">Login</Button>
-          <Button size="sm" className="bg-gradient-primary text-primary-foreground hover:opacity-95 shadow-elegant">
-            Start Free
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/auth">Login</Link>
+          </Button>
+          <Button asChild size="sm" className="bg-gradient-primary text-primary-foreground hover:opacity-95 shadow-elegant">
+            <Link to="/auth">Start Free</Link>
           </Button>
         </div>
 
@@ -80,9 +82,11 @@ export function SiteHeader() {
               </a>
             ))}
             <div className="flex gap-2 pt-2">
-              <Button variant="outline" size="sm" className="flex-1">Login</Button>
-              <Button size="sm" className="flex-1 bg-gradient-primary text-primary-foreground">
-                Start Free
+              <Button asChild variant="outline" size="sm" className="flex-1">
+                <Link to="/auth" onClick={() => setOpen(false)}>Login</Link>
+              </Button>
+              <Button asChild size="sm" className="flex-1 bg-gradient-primary text-primary-foreground">
+                <Link to="/auth" onClick={() => setOpen(false)}>Start Free</Link>
               </Button>
             </div>
           </div>
