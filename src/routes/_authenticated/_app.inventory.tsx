@@ -44,6 +44,23 @@ function InventoryPage() {
     },
   });
 
+  const { data: movements = [] } = useQuery<Movement[]>({
+    queryKey: ["inventory_movements"],
+    queryFn: async () => {
+      const uid = await getUserId();
+      const { data, error } = await db
+        .from("inventory_movements")
+        .select("*")
+        .eq("user_id", uid)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const productById = Object.fromEntries(products.map(p => [p.id, p]));
+
   const adjust = useMutation({
     mutationFn: async () => {
       if (!target) return;
@@ -54,12 +71,14 @@ function InventoryPage() {
       const { error } = await db.from("products").update({ stock: newStock }).eq("id", target.id);
       if (error) throw error;
       await db.from("inventory_movements").insert({
-        user_id: uid, product_id: target.id, change: delta, reason: reason || null,
+        user_id: uid, product_id: target.id, change: delta,
+        reason: (reason || "Manual adjustment"),
       });
     },
     onSuccess: () => {
       toast.success("Stock adjusted");
       qc.invalidateQueries({ queryKey: ["products"] });
+      qc.invalidateQueries({ queryKey: ["inventory_movements"] });
       setOpen(false); setChange(""); setReason(""); setTarget(null);
     },
     onError: (e: any) => toast.error(e.message),
