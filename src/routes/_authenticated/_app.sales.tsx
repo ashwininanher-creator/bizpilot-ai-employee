@@ -106,11 +106,17 @@ function SalesPage() {
       }));
       const { error: iErr } = await db.from("sale_items").insert(items);
       if (iErr) throw iErr;
-      // Decrement stock
+      // Decrement stock + log movements
       for (const l of lines) {
         const p = products.find(pp => pp.id === l.product_id);
         if (p) {
           await db.from("products").update({ stock: Number(p.stock) - l.quantity }).eq("id", p.id);
+          await db.from("inventory_movements").insert({
+            user_id: uid,
+            product_id: p.id,
+            change: -l.quantity,
+            reason: `Sale ${invoice_no}${customer?.name ? ` — ${customer.name}` : ""}`,
+          });
         }
       }
     },
@@ -118,6 +124,7 @@ function SalesPage() {
       toast.success("Sale created");
       qc.invalidateQueries({ queryKey: ["sales"] });
       qc.invalidateQueries({ queryKey: ["products"] });
+      qc.invalidateQueries({ queryKey: ["inventory_movements"] });
       setOpen(false); reset();
     },
     onError: (e: any) => toast.error(e.message),

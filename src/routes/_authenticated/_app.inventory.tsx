@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Boxes, TrendingDown } from "lucide-react";
+import { AlertTriangle, ArrowDownRight, ArrowUpRight, Boxes, TrendingDown } from "lucide-react";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/app/PageHeader";
@@ -12,7 +12,15 @@ import { Badge } from "@/components/ui/badge";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
-import { currency, db, getUserId, type Product } from "@/lib/data";
+import { currency, db, fmtDate, getUserId, type Product } from "@/lib/data";
+
+type Movement = {
+  id: string;
+  product_id: string;
+  change: number;
+  reason: string | null;
+  created_at: string;
+};
 
 export const Route = createFileRoute("/_authenticated/_app/inventory")({
   head: () => ({ meta: [{ title: "Inventory — BizPilot AI" }] }),
@@ -36,6 +44,23 @@ function InventoryPage() {
     },
   });
 
+  const { data: movements = [] } = useQuery<Movement[]>({
+    queryKey: ["inventory_movements"],
+    queryFn: async () => {
+      const uid = await getUserId();
+      const { data, error } = await db
+        .from("inventory_movements")
+        .select("*")
+        .eq("user_id", uid)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const productById = Object.fromEntries(products.map(p => [p.id, p]));
+
   const adjust = useMutation({
     mutationFn: async () => {
       if (!target) return;
@@ -46,12 +71,14 @@ function InventoryPage() {
       const { error } = await db.from("products").update({ stock: newStock }).eq("id", target.id);
       if (error) throw error;
       await db.from("inventory_movements").insert({
-        user_id: uid, product_id: target.id, change: delta, reason: reason || null,
+        user_id: uid, product_id: target.id, change: delta,
+        reason: (reason || "Manual adjustment"),
       });
     },
     onSuccess: () => {
       toast.success("Stock adjusted");
       qc.invalidateQueries({ queryKey: ["products"] });
+      qc.invalidateQueries({ queryKey: ["inventory_movements"] });
       setOpen(false); setChange(""); setReason(""); setTarget(null);
     },
     onError: (e: any) => toast.error(e.message),
@@ -120,6 +147,57 @@ function InventoryPage() {
           </div>
         )}
       </div>
+
+      <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-card">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-display font-semibold">Movement Log</h3>
+          <span className="text-xs text-muted-foreground">Last {movements.length} entries</span>
+        </div>
+        {movements.length === 0 ? (
+          <div className="text-sm text-muted-foreground py-8 text-center">
+            No movements yet. Sales and stock adjustments will appear here.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                <tr className="text-left">
+                  <th className="px-2 py-2">When</th>
+                  <th className="px-2 py-2">Product</th>
+                  <th className="px-2 py-2">Change</th>
+                  <th className="px-2 py-2">Reason</th>
+                </tr>
+              </thead>
+              <tbody>
+                {movements.map((m) => {
+                  const p = productById[m.product_id];
+                  const delta = Number(m.change);
+                  const up = delta > 0;
+                  return (
+                    <tr key={m.id} className="border-t border-border/60">
+                      <td className="px-2 py-3 text-muted-foreground whitespace-nowrap">
+                        {fmtDate(m.created_at)}{" "}
+                        <span className="opacity-60">
+                          {new Date(m.created_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      </td>
+                      <td className="px-2 py-3 font-medium">{p?.name || "—"}</td>
+                      <td className="px-2 py-3">
+                        <span className={`inline-flex items-center gap-1 font-medium ${up ? "text-emerald-600" : "text-rose-600"}`}>
+                          {up ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                          {up ? "+" : ""}{delta} {p?.unit || ""}
+                        </span>
+                      </td>
+                      <td className="px-2 py-3 text-muted-foreground">{m.reason || "—"}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
