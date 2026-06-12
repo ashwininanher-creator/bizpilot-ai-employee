@@ -17,7 +17,7 @@ export const askBusinessAI = createServerFn({ method: "POST" })
 
     // Gather lightweight business context
     const [biz, sales, products, customers, expenses] = await Promise.all([
-      supabase.from("businesses").select("business_name,business_type,gstin").eq("owner_id", userId).maybeSingle(),
+      supabase.from("businesses").select("business_name,business_type,gst_number").eq("owner_id", userId).maybeSingle(),
       supabase.from("sales").select("invoice_no,customer_name,total,status,payment_method,sale_date").eq("user_id", userId).order("created_at", { ascending: false }).limit(30),
       supabase.from("products").select("name,sku,stock,min_stock,price,cost").eq("user_id", userId).limit(50),
       supabase.from("customers").select("name,phone").eq("user_id", userId).limit(50),
