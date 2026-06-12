@@ -124,6 +124,7 @@ function SalesPage() {
       toast.success("Sale created");
       qc.invalidateQueries({ queryKey: ["sales"] });
       qc.invalidateQueries({ queryKey: ["products"] });
+      qc.invalidateQueries({ queryKey: ["inventory_movements"] });
       setOpen(false); reset();
     },
     onError: (e: any) => toast.error(e.message),
