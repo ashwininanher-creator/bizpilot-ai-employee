@@ -31,7 +31,7 @@ function BillingPage() {
       const uid = await getUserId();
       const [{ data: items }, { data: biz }, { data: cust }] = await Promise.all([
         db.from("sale_items").select("*").eq("sale_id", sale.id),
-        supabase.from("businesses").select("business_name,phone,email,address,gstin").eq("owner_id", uid).maybeSingle(),
+        supabase.from("businesses").select("business_name,phone,address,gst_number").eq("owner_id", uid).maybeSingle(),
         sale.customer_id
           ? db.from("customers").select("name,phone,address").eq("id", sale.customer_id).maybeSingle()
           : Promise.resolve({ data: null }),
@@ -44,7 +44,7 @@ function BillingPage() {
         date: fmtDate(sale.sale_date),
         business: {
           name: biz?.business_name || "Your Business",
-          phone: biz?.phone, email: biz?.email, address: biz?.address, gstin: biz?.gstin,
+          phone: biz?.phone, address: biz?.address, gstin: biz?.gst_number,
         },
         customer: {
           name: (cust as any)?.name || sale.customer_name || "Walk-in",
