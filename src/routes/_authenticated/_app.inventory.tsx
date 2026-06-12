@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Boxes, TrendingDown } from "lucide-react";
+import { AlertTriangle, ArrowDownRight, ArrowUpRight, Boxes, TrendingDown } from "lucide-react";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/app/PageHeader";
@@ -12,7 +12,15 @@ import { Badge } from "@/components/ui/badge";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
-import { currency, db, getUserId, type Product } from "@/lib/data";
+import { currency, db, fmtDate, getUserId, type Product } from "@/lib/data";
+
+type Movement = {
+  id: string;
+  product_id: string;
+  change: number;
+  reason: string | null;
+  created_at: string;
+};
 
 export const Route = createFileRoute("/_authenticated/_app/inventory")({
   head: () => ({ meta: [{ title: "Inventory — BizPilot AI" }] }),
